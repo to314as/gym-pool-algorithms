@@ -2,11 +2,14 @@ import argparse
 import sys
 import pickle
 
-from .env import PoolEnv
 from .q_table import q_table
 from .dqn import dqn
 from .a3c import a3c
 from .a3c_discrete import a3c_discrete
+import gym
+import gym_pool
+
+env=gym.make('gym_pool:Pool-v0')
 
 
 EPISODES = 100

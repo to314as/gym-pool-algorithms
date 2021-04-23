@@ -4,7 +4,9 @@ import datetime
 
 from .utils import v_wrap, set_init, push_and_pull, record, norm
 from .net import Net
-from ..env import PoolEnv
+import gym
+import gym_pool
+env=gym.make('gym_pool:Pool-v0')
 
 
 GLOBAL_UPDATE_RATE = 5 # the network will sync with the global network every X iterations

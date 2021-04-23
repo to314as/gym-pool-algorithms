@@ -1,19 +1,21 @@
 import argparse
 import sys
 
-from .env import PoolEnv
 from .q_table import q_table
 from .dqn import dqn
 from .a3c import a3c
 from .a3c_discrete import a3c_discrete
+import gym
+import gym_pool
 
+env=gym.make('gym_pool:Pool-v0')
 
 EPISODES = 1000
 EPISODE_LENGTH = 5
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='RL training.')
-    parser.add_argument('output_model', type=str,
+    parser.add_argument('--output_model', type=str, default='output_model',
             help='Output model path.')
     parser.add_argument('--algo', type=str, default='q-table',
             help='One of q-table, dqn (Deep Q-Network), a3c (Asynchronous Advantage Actor-Critic), a3c-discrete. Default: q-table')
@@ -44,7 +46,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if single_env:
-        env = PoolEnv(args.balls, visualize=args.visualize)
+        env = env
         algo(env, args.output_model, episodes=EPISODES, episode_length=EPISODE_LENGTH)
     else:
         env_params = { 'num_balls': args.balls, 'visualize': args.visualize }
