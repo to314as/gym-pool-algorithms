@@ -2,16 +2,17 @@ import argparse
 import sys
 
 from .q_table import q_table
+from .q_table import q_table_new
 from .dqn import dqn
 from .a3c import a3c
 from .a3c_discrete import a3c_discrete
 import gym
 import gym_pool
 
-env=gym.make('gym_pool:Pool-v0')
+env=gym.make('gym_pool:PoolNew-v0')
 
 EPISODES = 1000
-EPISODE_LENGTH = 5
+EPISODE_LENGTH = 25
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='RL training.')
@@ -32,7 +33,8 @@ if __name__ == '__main__':
     single_env = True
     
     if args.algo == 'q-table':
-        algo = q_table.train
+        #algo = q_table.train
+        algo = q_table_new.train
     elif args.algo == 'dqn':
         algo = dqn.train
     elif args.algo == 'a3c':

@@ -38,6 +38,7 @@ def train(env, model_path, episodes=200, episode_length=50):
 
     # Initialize DQN Agent
     state_size = env.state_space.n
+    #print(state_size)
     action_buckets = [360, 1]
     env.set_buckets(action=action_buckets)
     action_size = action_buckets[0] * action_buckets[1]
@@ -65,11 +66,12 @@ def train(env, model_path, episodes=200, episode_length=50):
             #    state[i] -= state[0]
             #    state[i+1] -= state[1]
             action = agent.act(state, epsilon)
+            #print("Action",action)
             #print('The action number is ' + str(action))
             #print('The action is ' + str(action_to_tuple(action, action_buckets)))
             next_state, reward, done = env.step(action_to_tuple(action, action_buckets))
             rewards += reward
-            #print('The reward is ' + str(reward))
+            print('The reward is ' + str(reward))
             #print('The next state is ' + str(next_state))
 
             # Agent learns over New Step
