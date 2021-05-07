@@ -1,5 +1,6 @@
 import math
 import pickle
+import matplotlib.pyplot as plt
 
 import numpy as np
 
@@ -43,6 +44,10 @@ def train(env, model_path, episodes=200, episode_length=50):
         state = env.reset() # reset environment to initial state for each episode
         rewards = 0 # accumulate rewards for each episode
         done = False
+        results = [];
+        lengths = [];
+        avg_results = [];
+        avg_lengths = []
         for t in range(episode_length):
             # Agent takes action using epsilon-greedy algorithm, get reward
             action = choose_action(state, q_table, env.action_space, epsilon)
@@ -58,9 +63,32 @@ def train(env, model_path, episodes=200, episode_length=50):
             state = next_state
 
             if done:
-                print('Episode finished after {} timesteps, total rewards {}'.format(t+1, rewards))
+                print('Episode {} finished after {} timesteps, total rewards {}'.format(i_episode, t + 1, rewards))
+                results.append(rewards)
+                lengths.append(t)
+                avg_lengths.append(np.mean(lengths[-10:]))
+                avg_results.append(np.mean(results[-10:]))
                 break
         if not done:
-            print('Episode finished after {} timesteps, total rewards {}'.format(episode_length, rewards))
+            print('Episode {} finished after {} timesteps, total rewards {}'.format(i_episode, episode_length, rewards))
+            results.append(rewards)
+            lengths.append(episode_length)
+            avg_lengths.append(np.mean(lengths[-10:]))
+            avg_results.append(np.mean(results[-10:]))
 
         save_model(model_path, q_table)
+    print(results)
+    plt.plot(lengths)
+    plt.plot(avg_lengths)
+    plt.xlabel('Episodes')
+    plt.ylabel('Lengths')
+    plt.title('Q Table Performance')
+    plt.savefig('output\\qtable_lengths_3_3.png')
+    plt.show()
+    plt.plot(results)
+    plt.plot(avg_results)
+    plt.xlabel('Episodes')
+    plt.ylabel('rewards')
+    plt.title('Q Table Performance')
+    plt.savefig('output\\qtable_rewards_3_3.png')
+    plt.show()
