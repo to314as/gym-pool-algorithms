@@ -1,1 +1,2 @@
 Transfer Learning Balls 3 lr0.1 decay1e-05, gamma0.95 updates 4 : 184.00863656471756; 19.741
+Transfer Learning Balls 3 lr0.1 decay1e-05, gamma0.95 updates 4 : -21.318; 21.397

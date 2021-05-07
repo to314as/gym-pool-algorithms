@@ -6,6 +6,7 @@ from .q_table import q_table_new
 from .dqn import dqn
 from .dqna import dqna
 from .REINFORCE import REINFORCE
+from .brute_force import BruteForce
 import gym
 import gym_pool
 
@@ -48,8 +49,10 @@ if __name__ == '__main__':
     elif args.algo == 'REINFORCE':
         env.visualize = args.visualize
         algo = REINFORCE.train
+    elif args.algo == 'brute force':
+        BruteForce()
     else:
-        print('Algorithm not supported! Should be one of q-table, dqn, dqna or REINFORCE.')
+        print('Algorithm not supported! Should be one of q-table, dqn, dqna, brute force or REINFORCE.')
         sys.exit(1)
 
     if single_env:
