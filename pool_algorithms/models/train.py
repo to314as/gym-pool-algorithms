@@ -4,22 +4,22 @@ import sys
 from .q_table import q_table
 from .q_table import q_table_new
 from .dqn import dqn
-from .a3c import a3c
-from .a3c_discrete import a3c_discrete
+from .dqna import dqna
+from .REINFORCE import REINFORCE
 import gym
 import gym_pool
 
-env=gym.make('gym_pool:PoolNew-v0')
+env=gym.make('gym_pool:Pool-v0')
 
 EPISODES = 1000
 EPISODE_LENGTH = 25
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='RL training.')
-    parser.add_argument('--output_model', type=str, default='output_model',
+    parser.add_argument('--output_model', type=str, default='q_table_new_output_model',
             help='Output model path.')
     parser.add_argument('--algo', type=str, default='q-table',
-            help='One of q-table, dqn (Deep Q-Network), a3c (Asynchronous Advantage Actor-Critic), a3c-discrete. Default: q-table')
+            help='One of q-table, dqn (Deep Q-Network) or REINFORCE. Default: q-table')
     parser.add_argument('--balls', type=int, default=2,
             help='Number of balls on table (including white ball), should be >= 2. Default: 2')
     parser.add_argument('--visualize', dest='visualize', action='store_true',
@@ -33,18 +33,23 @@ if __name__ == '__main__':
     single_env = True
     
     if args.algo == 'q-table':
+        env = gym.make('gym_pool:Pool-v1')
+        env.visualize=args.visualize
         #algo = q_table.train
         algo = q_table_new.train
     elif args.algo == 'dqn':
+        env = gym.make('gym_pool:Pool_continuous-v0')
+        env.visualize = args.visualize
         algo = dqn.train
-    elif args.algo == 'a3c':
-        algo = a3c.train
-        single_env = False
-    elif args.algo == 'a3c-discrete':
-        algo = a3c_discrete.train
-        single_env = False
+    elif args.algo == 'dqna':
+        env = gym.make('gym_pool:Pool_angle-v0')
+        env.visualize = args.visualize
+        algo = dqna.train
+    elif args.algo == 'REINFORCE':
+        env.visualize = args.visualize
+        algo = REINFORCE.train
     else:
-        print('Algorithm not supported! Should be one of q-table, dqn, a3c, or a3c-discrete.')
+        print('Algorithm not supported! Should be one of q-table, dqn, dqna or REINFORCE.')
         sys.exit(1)
 
     if single_env:
