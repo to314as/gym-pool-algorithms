@@ -39,6 +39,8 @@ def train(env, model_path, episodes=200, episode_length=50):
     discount_factors = [0.95]#[0.99,0.95,0.9]
     updates =[4]
     performance={}
+    env.hole_distance = 0
+    env.ball_in_reward = 50
     #episodes = 1500; episode_length = 25
     for lr in learning_rates:
         for d in learning_decay:
@@ -111,14 +113,14 @@ def train(env, model_path, episodes=200, episode_length=50):
                     plt.xlabel('Episodes')
                     plt.ylabel('Lengths')
                     plt.title('Transfer Learning Balls {} lr{} decay{}, gamma{} updates{}'.format(3,lr,d,gamma, u))
-                    plt.savefig('output\\lengths_3_3.png')
+                    plt.savefig('output\\lengths_3_3_2.png')
                     plt.show()
                     plt.plot(results)
                     plt.plot(avg_results)
                     plt.xlabel('Episodes')
                     plt.ylabel('rewards')
                     plt.title('Transfer Learning Balls {} lr{} decay{}, gamma{} updates {}'.format(3,lr,d,gamma, u))
-                    plt.savefig('output\\rewards_3_3.png')
+                    plt.savefig('output\\rewards_3_3_4.png')
                     plt.show()
 
                     print("avg results ",lr, d, gamma, np.mean(results))
