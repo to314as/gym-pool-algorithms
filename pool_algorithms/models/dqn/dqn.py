@@ -1,7 +1,7 @@
 import math
 import pickle
 import numpy as np
-
+import matplotlib.pyplot as plt
 from . import dqn_agent
 import torch
 
@@ -34,63 +34,92 @@ def choose_action(state, model, action_space, epsilon = 0.):
     return action
 
 def train(env, model_path, episodes=200, episode_length=50):
-    print('DQN training')
+    learning_rates = [0.1]#[0.15,0.01]#[0.1,0.05,0.15,0.01]
+    learning_decay = [0.00001]
+    discount_factors = [0.95]#[0.99,0.95,0.9]
+    updates =[4]
+    performance={}
+    #episodes = 1500; episode_length = 25
+    for lr in learning_rates:
+        for d in learning_decay:
+            for gamma in discount_factors:
+                for u in updates:
+                    dqn_agent.LR = lr; dqn_agent.DECAY = d; dqn_agent.GAMMA = gamma; dqn_agent.UPDATE_EVERY = u
+                    results = []; lengths =[]; avg_results = []; avg_lengths = []
+                    # Initialize DQN Agent
+                    state_size = env.state_space.n
+                    action_buckets = [360, 4]
+                    env.set_buckets(action=action_buckets)
+                    action_size = action_buckets[0] * action_buckets[1]
+                    model_params = {'s_dim': env.state_space.n,
+                                    'a_dim': env.action_space.n,
+                                    'buckets': env.action_space.buckets}
+                    print('model params: ', env.state_space.n, env.action_space.n, env.action_space.buckets)
+                    agent = dqn_agent.Agent(state_size, action_size, seed = 229)
+                    #agent = load_model('saved_model_3balls',model_params)
+                    # Learning related constants; factors should be determined by trial-and-error
+                    get_epsilon = lambda i: max(0.01, min(1, 1.0 - math.log10((i+1)/25))) # epsilon-greedy, factor to explore randomly; discounted over time
 
-    # Initialize DQN Agent
-    state_size = env.state_space.n
-    #print(state_size)
-    action_buckets = [360, 1]
-    env.set_buckets(action=action_buckets)
-    action_size = action_buckets[0] * action_buckets[1]
+                    # Q-learning
+                    for i_episode in range(episodes):
+                        epsilon = get_epsilon(i_episode)
 
-    agent = dqn_agent.Agent(state_size, action_size, seed = 229)
+                        state = env.reset() # reset environment to initial state for each episode
+                        rewards = 0 # accumulate rewards for each episode
+                        done = False
+                        for t in range(episode_length):
+                            # Agent takes action using epsilon-greedy algorithm, get reward
+                            action = agent.act(state, epsilon)
+                            next_state, reward, done = env.step(action_to_tuple(action, action_buckets))
+                            rewards += reward
+                            #print('The reward is ' + str(reward))
+                            #print('The next state is ' + str(next_state))
 
-    # Learning related constants; factors should be determined by trial-and-error
-    get_epsilon = lambda i: max(0.01, min(1, 1.0 - math.log10((i+1)/25))) # epsilon-greedy, factor to explore randomly; discounted over time
-    get_lr = lambda i: max(0.01, min(0.5, 1.0 - math.log10((i+1)/25))) # learning rate; discounted over time
-    gamma = 0.8 # reward discount factor
+                            # Agent learns over New Step
+                            agent.step(state, action, reward, next_state, done)
 
-    # Q-learning
-    for i_episode in range(episodes):
-        epsilon = get_epsilon(i_episode)
-        lr = get_lr(i_episode)
-
-        state = env.reset() # reset environment to initial state for each episode
-        rewards = 0 # accumulate rewards for each episode
-        done = False
-        for t in range(episode_length):
-            # Agent takes action using epsilon-greedy algorithm, get reward
-            #print('Episode ' + str(i_episode))
-            #print('Iter ' + str(t))
-            #for i in range(2, 2, len(state)):
-            #    state[i] -= state[0]
-            #    state[i+1] -= state[1]
-            action = agent.act(state, epsilon)
-            #print("Action",action)
-            #print('The action number is ' + str(action))
-            #print('The action is ' + str(action_to_tuple(action, action_buckets)))
-            next_state, reward, done = env.step(action_to_tuple(action, action_buckets))
-            rewards += reward
-            print('The reward is ' + str(reward))
-            #print('The next state is ' + str(next_state))
-
-            # Agent learns over New Step
-            agent.step(state, action, reward, next_state, done)
-
-            # Transition to next state
-            state = next_state
+                            # Transition to next state
+                            state = next_state
 
 
 
-            if done:
-                print('Episode {} finished after {} timesteps, total rewards {}'.format(i_episode, t+1, rewards))
-                with open("output\\dqn-log.txt", "a") as myfile:
-                    myfile.write('Episode {} finished after {} timesteps, total rewards {}\n'.format(i_episode, t+1, rewards))
-                break
-        if not done:
-            print('Episode {} finished after {} timesteps, total rewards {}'.format(i_episode, episode_length, rewards))
-            with open("output\\dqn-log.txt", "a") as myfile:
-                myfile.write('Episode {} finished after {} timesteps, total rewards {}\n'.format(i_episode, episode_length, rewards))
+                            if done:
+                                print('Episode {} finished after {} timesteps, total rewards {}'.format(i_episode, t+1, rewards))
+                                results.append(rewards)
+                                lengths.append(t)
+                                avg_lengths.append(np.mean(lengths[-10:]))
+                                avg_results.append(np.mean(results[-10:]))
+                                with open("output\\dqn-log.txt", "a") as myfile:
+                                    myfile.write('Episode {} finished after {} timesteps, total rewards {}\n'.format(i_episode, t+1, rewards))
+                                break
+                        if not done:
+                            print('Episode {} finished after {} timesteps, total rewards {}'.format(i_episode, episode_length, rewards))
+                            results.append(rewards)
+                            lengths.append(episode_length)
+                            avg_lengths.append(np.mean(lengths[-10:]))
+                            avg_results.append(np.mean(results[-10:]))
+                            with open("output\\dqn-log.txt", "a") as myfile:
+                                myfile.write('Episode {} finished after {} timesteps, total rewards {}\n'.format(i_episode, episode_length, rewards))
 
-        save_model(model_path, agent)
-        #print(agent.qnetwork_local.state_dict())
+                        save_model('saved_model_3balls', agent)
+                    performance[4,lr, d, gamma, u] = [np.mean(results), np.mean(lengths)]
+                    with open("output\\experiments.txt", "a") as myfile:
+                        myfile.write('Transfer Learning Balls {} lr{} decay{}, gamma{} updates {} : {}; {}\n'.format(3,lr,d,gamma,u,np.mean(results),np.mean(lengths)))
+                    print(results)
+                    plt.plot(lengths)
+                    plt.plot(avg_lengths)
+                    plt.xlabel('Episodes')
+                    plt.ylabel('Lengths')
+                    plt.title('Transfer Learning Balls {} lr{} decay{}, gamma{} updates{}'.format(3,lr,d,gamma, u))
+                    plt.savefig('output\\lengths_3_3.png')
+                    plt.show()
+                    plt.plot(results)
+                    plt.plot(avg_results)
+                    plt.xlabel('Episodes')
+                    plt.ylabel('rewards')
+                    plt.title('Transfer Learning Balls {} lr{} decay{}, gamma{} updates {}'.format(3,lr,d,gamma, u))
+                    plt.savefig('output\\rewards_3_3.png')
+                    plt.show()
+
+                    print("avg results ",lr, d, gamma, np.mean(results))
+                    print("avg length",lr, d ,gamma, np.mean(lengths))
