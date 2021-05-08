@@ -80,6 +80,7 @@ def train(env, model_path, episodes=200, episode_length=50):
 
     save_model(model_path, q_table)
     print(results)
+    print(lengths)
     plt.plot(lengths)
     plt.plot(avg_lengths)
     plt.xlabel('Episodes')

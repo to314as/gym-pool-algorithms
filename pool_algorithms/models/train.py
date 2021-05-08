@@ -12,7 +12,7 @@ import gym_pool
 
 env=gym.make('gym_pool:Pool-v0')
 
-EPISODES = 1000
+EPISODES = 4000
 EPISODE_LENGTH = 25
 
 if __name__ == '__main__':
